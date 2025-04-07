@@ -189,7 +189,8 @@ const Twins1 = () => {
         <div className="flex items-center justify-center h-full w-full overflow-hidden relative">
           {/* Show card image */}
           <img
-            src={`/img/${encodedFilename}`}
+            src={`${import.meta.env.BASE_URL}img/${encodedFilename}`}
+            // src={`/img/${encodedFilename}`}
             alt={card.cardInfo.displayName}
             className="w-full h-full object-cover"
           />
@@ -208,7 +209,8 @@ const Twins1 = () => {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <img
-          src="/cover.jpg"
+          src={`${import.meta.env.BASE_URL}cover.jpg`}
+          // src="/cover.jpg"
           alt="Card back"
           className="w-full h-full object-cover"
         />
@@ -472,9 +474,12 @@ const Twins1 = () => {
         >
           <div className="max-w-2xl max-h-2xl p-4">
             <img
-              src={`/img/${encodeURIComponent(
+              src={`${import.meta.env.BASE_URL}img/${encodeURIComponent(
                 `${fullscreenCard.cardInfo.displayName}.jpg`
               )}`}
+              // src={`/img/${encodeURIComponent(
+              //   `${fullscreenCard.cardInfo.displayName}.jpg`
+              // )}`}
               alt={fullscreenCard.cardInfo.displayName}
               className="max-w-full max-h-full object-contain"
             />
