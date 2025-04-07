@@ -59,10 +59,15 @@ const Twins1 = () => {
     const loadCardData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("/card-data.json");
+        // Use the correct path for card-data.json
+        const response = await fetch(
+          `${import.meta.env.BASE_URL}card-data.json`
+        );
 
         if (!response.ok) {
-          throw new Error("Failed to load card data");
+          throw new Error(
+            `Failed to load card data (status: ${response.status})`
+          );
         }
 
         const data = await response.json();
@@ -71,36 +76,25 @@ const Twins1 = () => {
         setAvailableCardKeys(Object.keys(data));
       } catch (error) {
         console.error("Error loading card data:", error);
-        // Fallback data
-        const fallbackData = {
-          card1: "Default Card 1",
-          card2: "Default Card 2",
-          card3: "Default Card 3",
-          card4: "Default Card 4",
-          card5: "Default Card 5",
-          card6: "Default Card 6",
-          card7: "Default Card 7",
-          card8: "Default Card 8",
-          card9: "Default Card 9",
-          card10: "Default Card 10",
-          card11: "Default Card 11",
-          card12: "Default Card 12",
-          card13: "Default Card 13",
-          card14: "Default Card 14",
-          card15: "Default Card 15",
-          card16: "Default Card 16",
-          card17: "Default Card 17",
-          card18: "Default Card 18",
-          card19: "Default Card 19",
-          card20: "Default Card 20",
+
+        // Automatically generate fallback data with card numbers
+        const generateFallbackData = () => {
+          const fallbackData = {};
+          // Generate 20 cards by default, or adjust based on your needs
+          for (let i = 1; i <= 20; i++) {
+            fallbackData[`card${i}`] = `Card ${i}`;
+          }
+          return fallbackData;
         };
+
+        const fallbackData = generateFallbackData();
+        console.log("Using fallback card data:", fallbackData);
         setCardData(fallbackData);
         setAvailableCardKeys(Object.keys(fallbackData));
       } finally {
         setIsLoading(false);
       }
     };
-
     loadCardData();
   }, []);
 
@@ -178,13 +172,6 @@ const Twins1 = () => {
         return <div className="text-white">Error: Invalid card data</div>;
       }
 
-      // console.log("Card info:", {
-      //   key: card.cardInfo.key,
-      //   displayName: card.cardInfo.displayName,
-      //   filename,
-      //   encodedPath: `/img/${encodedFilename}`
-      // });
-
       return (
         <div className="flex items-center justify-center h-full w-full overflow-hidden relative">
           {/* Show card image */}
@@ -246,7 +233,7 @@ const Twins1 = () => {
         // Clear the effect after the animation completes
         setTimeout(() => {
           setMatchEffectCards([]);
-        }, 800);
+        }, 500);
 
         // Mark both cards as matched (after a slight delay)
         setTimeout(() => {
@@ -294,7 +281,7 @@ const Twins1 = () => {
               card.id === clickedCard.id ? { ...card, showImage: false } : card
             )
           );
-        }, 800);
+        }, 500);
       }
     } else {
       // No open card yet - just open the clicked card
@@ -362,6 +349,22 @@ const Twins1 = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const newGameButtonRef = React.useRef(null);
+
+  // UseEffect to handle button focus
+  useEffect(() => {
+    // Focus the button when:
+    // 1. The component has mounted
+    // 2. The game is not started
+    // 3. We're not in loading state
+    if (!gameStarted && !isLoading && newGameButtonRef.current) {
+      // Use setTimeout to ensure DOM is fully rendered
+      setTimeout(() => {
+        newGameButtonRef.current.focus();
+      }, 100);
+    }
+  }, [gameStarted, isLoading]);
+
   // Dynamic number of columns determination
   const getCardStyle = () => {
     return {
@@ -384,26 +387,49 @@ const Twins1 = () => {
       <h1 className="text-5xl font-bold mb-6 text-center">Twins 1</h1>
 
       <button
-        className="bg-teal-500 hover:bg-teal-600 text-white py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transform hover:scale-105"
+        ref={newGameButtonRef}
+        className="text-white py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-all transform cursor-pointer"
         style={{
           backgroundColor: "#2A5095",
           color: "#FED296",
           transition: "all 0.2s ease-in-out",
+          userSelect: "none", // Prevents text selection cursor
+          outline: "none", // Remove default outline
+        }}
+        onFocus={(e) => {
+          // Change background color on focus and add a subtle glow
+          e.currentTarget.style.backgroundColor = "#22c55e"; // Green background on focus
+          e.currentTarget.style.boxShadow = "0 0 10px rgba(34, 197, 94, 0.5)"; // Subtle green glow
+          e.currentTarget.style.transform = "scale(1.1)";
+        }}
+        onBlur={(e) => {
+          // Reset to original style when focus is lost
+          e.currentTarget.style.backgroundColor = "#2A5095";
+          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#22c55e"; // Green on hover
+          e.currentTarget.style.transform = "scale(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          // Only reset if not focused
+          if (document.activeElement !== e.currentTarget) {
+            e.currentTarget.style.backgroundColor = "#2A5095";
+            e.currentTarget.style.transform = "scale(1)";
+          }
         }}
         onClick={initializeGame}
         disabled={isLoading}
-        autoFocus={!gameStarted} // This will focus the button when the game isn't started
       >
-        {isLoading ? "Loading images..." : "New Game"}
+        {isLoading ? "Loading images..." : "Играть"}
       </button>
-
       {isLoading && (
         <div className="text-center mb-4">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-500 border-r-transparent"></div>
           <p className="mt-2">Loading card images...</p>
         </div>
       )}
-
       {gameStarted && !isLoading ? (
         <>
           {/* Game board */}
