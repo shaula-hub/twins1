@@ -3,12 +3,23 @@ import React, { useState, useEffect } from "react";
 const Twins1 = () => {
   // Enhanced column count for different screen widths
   const getColumnsForScreenWidth = () => {
-    if (window.innerWidth <= 480) return 4; // Small mobile: 3 columns
-    if (window.innerWidth <= 767) return 5; // Large mobile/small tablet: 4 columns
+    if (window.innerWidth <= 480) return 4; // Small mobile: 4 columns
+    if (window.innerWidth <= 767) return 5; // Large mobile/small tablet: 5 columns
     if (window.innerWidth <= 1023) return 6; // Tablet: 6 columns
     if (window.innerWidth <= 1279) return 7; // Small desktop: 7 columns
     return 8; // Large desktop: 8 columns
   };
+
+  const COLORS = {
+    background: "#0E0E0E", // Almost black background
+    primary: "#FFC472", // Yellow-orange accent color
+    secondary: "#2A5095", // Blue accent
+    tertiary: "#22c55e", // Green accent
+    highlight: "#FED296", // Lighter yellow for highlights/focus states
+    buttonText: "#0E0E0E", // Dark text for buttons
+  };
+
+  const NAME_DISPLAY_DURATION = 500;
 
   // Game configuration constants
   const [columns, setColumns] = useState(getColumnsForScreenWidth());
@@ -23,6 +34,8 @@ const Twins1 = () => {
   };
 
   // Game state variables
+  const playAgainButtonRef = React.useRef(null);
+
   const [cardData, setCardData] = useState({});
   const [availableCardKeys, setAvailableCardKeys] = useState([]);
   const [cards, setCards] = useState([]);
@@ -32,7 +45,9 @@ const Twins1 = () => {
   const [matchedPairs, setMatchedPairs] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [matchEffectCards, setMatchEffectCards] = useState([]);
-  const NAME_DISPLAY_DURATION = 500;
+  const [congratsScale, setCongratsScale] = useState(0.3);
+  const [congratsOpacity, setCongratsOpacity] = useState(0);
+  const [isProcessingClick, setIsProcessingClick] = useState(false);
 
   // Add this debugging console log to verify breakpoints during development
   useEffect(() => {
@@ -249,6 +264,11 @@ const Twins1 = () => {
       return;
     }
 
+    if (isProcessingClick) {
+      // To prevent processing of fast clicking
+      return;
+    }
+
     // Ignore clicks on already matched or open cards
     if (
       clickedCard.state === CARD_STATES.MATCHED ||
@@ -258,9 +278,13 @@ const Twins1 = () => {
     }
 
     // Check if there's an open card
+    // Check if there's an open card
     if (openCard !== null) {
       // If clicking a matching card
       if (openCard.sourceId === clickedCard.sourceId) {
+        // Mark that we're processing a click
+        setIsProcessingClick(true);
+
         // Show the 2nd card image
         setCards((prevCards) =>
           prevCards.map((card) =>
@@ -269,6 +293,15 @@ const Twins1 = () => {
               : card
           )
         );
+
+        // Always hide text after the same duration
+        setTimeout(() => {
+          setCards((prevCards) =>
+            prevCards.map((card) =>
+              card.id === clickedCard.id ? { ...card, showImage: false } : card
+            )
+          );
+        }, NAME_DISPLAY_DURATION);
 
         // Wait 0.5 seconds before starting animation
         setTimeout(() => {
@@ -294,14 +327,19 @@ const Twins1 = () => {
             setMatchedPairs(newMatchedPairs);
             setOpenCard(null);
 
+            // Allow new clicks
+            setIsProcessingClick(false);
+
             if (newMatchedPairs === TOTAL_PAIRS) {
               setIsGameOver(true);
             }
           }, 1000); // Wait for animation to complete (1s as per your CSS)
-        }, 500); // 0.5s delay before animation starts
-        //}
+        }, NAME_DISPLAY_DURATION + 100); // Start animation after name display
       } else {
         // Not a match - close the previously open card
+        // Mark that we're processing a click
+        setIsProcessingClick(true);
+
         setCards((prevCards) =>
           prevCards.map((card) => {
             if (card.id === clickedCard.id) {
@@ -319,17 +357,23 @@ const Twins1 = () => {
         // Set the new open card
         setOpenCard(clickedCard);
 
-        // Hide the text after 0.5 seconds
+        // Hide the text after the consistent duration
         setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
               card.id === clickedCard.id ? { ...card, showImage: false } : card
             )
           );
+
+          // Allow new clicks after display duration
+          setIsProcessingClick(false);
         }, NAME_DISPLAY_DURATION);
       }
     } else {
       // No open card yet - just open the clicked card
+      // Mark that we're processing a click
+      setIsProcessingClick(true);
+
       setCards((prevCards) =>
         prevCards.map((card) =>
           card.id === clickedCard.id
@@ -341,13 +385,16 @@ const Twins1 = () => {
       // Set this as the open card
       setOpenCard(clickedCard);
 
-      // Hide the text after 0.5 seconds
+      // Hide the text after the same consistent duration
       setTimeout(() => {
         setCards((prevCards) =>
           prevCards.map((card) =>
             card.id === clickedCard.id ? { ...card, showImage: false } : card
           )
         );
+
+        // Allow new clicks after display duration
+        setIsProcessingClick(false);
       }, NAME_DISPLAY_DURATION);
     }
   };
@@ -393,6 +440,37 @@ const Twins1 = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (isGameOver) {
+      // Start with small scale and invisible
+      setCongratsScale(0.3);
+      setCongratsOpacity(0);
+
+      // First step of animation - grow and fade in
+      setTimeout(() => {
+        setCongratsScale(1.05);
+        setCongratsOpacity(1);
+      }, 100);
+
+      // Second step - slight bounce back
+      setTimeout(() => {
+        setCongratsScale(0.95);
+      }, 400);
+
+      // Final step - return to normal size
+      setTimeout(() => {
+        setCongratsScale(1);
+      }, 600);
+
+      // Set focus on the "Play Again" button after animation completes
+      setTimeout(() => {
+        if (playAgainButtonRef.current) {
+          playAgainButtonRef.current.focus();
+        }
+      }, 700); // Set focus after animation is mostly complete
+    }
+  }, [isGameOver]);
 
   const newGameButtonRef = React.useRef(null);
 
@@ -472,34 +550,34 @@ const Twins1 = () => {
 
       <button
         ref={newGameButtonRef}
-        className="text-white py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-all transform cursor-pointer"
+        className="py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-all transform cursor-pointer"
         style={{
-          backgroundColor: "#2A5095",
-          color: "#FED296",
+          backgroundColor: COLORS.tertiary,
+          color: "#FFFFFF",
           transition: "all 0.2s ease-in-out",
-          userSelect: "none", // Prevents text selection cursor
-          outline: "none", // Remove default outline
+          userSelect: "none",
+          outline: "none",
         }}
         onFocus={(e) => {
-          // Change background color on focus and add a subtle glow
-          e.currentTarget.style.backgroundColor = "#22c55e"; // Green background on focus
-          e.currentTarget.style.boxShadow = "0 0 10px rgba(34, 197, 94, 0.5)"; // Subtle green glow
+          e.currentTarget.style.backgroundColor = COLORS.tertiary;
+          e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
           e.currentTarget.style.transform = "scale(1.1)";
         }}
         onBlur={(e) => {
-          // Reset to original style when focus is lost
-          e.currentTarget.style.backgroundColor = "#2A5095";
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.color = COLORS.buttonText;
           e.currentTarget.style.boxShadow = "none";
           e.currentTarget.style.transform = "scale(1)";
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#22c55e"; // Green on hover
+          e.currentTarget.style.backgroundColor = COLORS.tertiary;
+          e.currentTarget.style.color = "#FFFFFF";
           e.currentTarget.style.transform = "scale(1.1)";
         }}
         onMouseLeave={(e) => {
-          // Only reset if not focused
           if (document.activeElement !== e.currentTarget) {
-            e.currentTarget.style.backgroundColor = "#2A5095";
+            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.color = COLORS.buttonText;
             e.currentTarget.style.transform = "scale(1)";
           }
         }}
@@ -508,12 +586,14 @@ const Twins1 = () => {
       >
         {isLoading ? "Loading images..." : "Играть"}
       </button>
+
       {isLoading && (
         <div className="text-center mb-4">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-500 border-r-transparent"></div>
           <p className="mt-2">Loading card images...</p>
         </div>
       )}
+
       {gameStarted && !isLoading ? (
         <>
           {/* Game board */}
@@ -565,9 +645,35 @@ const Twins1 = () => {
 
           {/* Game Over message */}
           {isGameOver && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-8 py-6 rounded-lg text-center mt-4">
-              <h2 className="text-3xl font-bold mb-2">Congratulations!</h2>
-              <p className="text-xl">You've matched all the cards!</p>
+            <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+              <div
+                className="px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
+                // className="bg-green-100 border-4 border-green-500 text-green-700 px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
+                style={{
+                  marginBottom: "35vh", // Position it above the game board
+                  maxWidth: "90%",
+                  boxShadow: "0 0 20px rgba(34, 197, 94, 0.6)",
+                  animation: "none", // We'll use React state for animation instead
+                  transform: `scale(${congratsScale})`, // Scale based on state
+                  opacity: congratsOpacity, // Opacity based on state
+                  transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
+                }}
+              >
+                <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
+                <p className="text-xl">Вы нашли все пары!</p>
+                <button
+                  className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-bold transition-colors"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = COLORS.tertiary;
+                    e.currentTarget.style.color = "#FFFFFF";
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onClick={initializeGame}
+                  autoFocus={!gameStarted}
+                >
+                  Играть снова
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -596,6 +702,71 @@ const Twins1 = () => {
             <div className="text-white text-center mt-4 text-xl">
               {fullscreenCard.cardInfo.displayName}
             </div>
+          </div>
+        </div>
+      )}
+      {isGameOver && (
+        <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+          <div
+            className="text-center shadow-2xl pointer-events-auto"
+            style={{
+              marginBottom: "35vh", // Position it above the game board
+              maxWidth: "90%",
+              backgroundColor: COLORS.background, // Almost black background
+              borderColor: COLORS.secondary, // blue border
+              borderWidth: "4px",
+              borderStyle: "solid",
+              color: COLORS.primary, // black text
+              padding: "2rem",
+              borderRadius: "0.5rem",
+              boxShadow: `0 0 20px ${COLORS.primary}`, // Yellow-orange glow
+              transform: `scale(${congratsScale})`,
+              opacity: congratsOpacity,
+              transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
+            }}
+          >
+            <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
+            <p className="text-xl">Вы нашли все пары!</p>
+            <button
+              ref={playAgainButtonRef}
+              className="mt-4 font-bold py-2 px-6 rounded-lg transition-all"
+              style={{
+                backgroundColor: COLORS.primary, // Yellow-orange button
+                color: COLORS.buttonText, // Dark text on button
+                border: `2px solid ${COLORS.primary}`,
+                transform: "scale(1)",
+                transition: "all 0.2s ease-in-out",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter yellow on focus
+                e.currentTarget.style.borderColor = COLORS.tertiary;
+                e.currentTarget.style.color = "#FFFFFF";
+                e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
+                e.currentTarget.style.transform = "scale(1.2)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.primary;
+                e.currentTarget.style.borderColor = COLORS.primary;
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter green on hover
+                e.currentTarget.style.borderColor = COLORS.tertiary;
+                e.currentTarget.style.color = "#FFFFFF";
+                e.currentTarget.style.transform = "scale(1.2)";
+              }}
+              onMouseLeave={(e) => {
+                if (document.activeElement !== e.currentTarget) {
+                  e.currentTarget.style.backgroundColor = COLORS.primary;
+                  e.currentTarget.style.borderColor = COLORS.primary;
+                  e.currentTarget.style.transform = "scale(1)";
+                }
+              }}
+              onClick={initializeGame}
+            >
+              Играть снова
+            </button>
           </div>
         </div>
       )}
