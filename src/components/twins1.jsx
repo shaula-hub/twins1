@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 const Twins1 = () => {
   // Enhanced column count for different screen widths
   const getColumnsForScreenWidth = () => {
-    if (window.innerWidth <= 480) return 3; // Small mobile: 3 columns
-    if (window.innerWidth <= 767) return 4; // Large mobile/small tablet: 4 columns
+    if (window.innerWidth <= 480) return 4; // Small mobile: 3 columns
+    if (window.innerWidth <= 767) return 5; // Large mobile/small tablet: 4 columns
     if (window.innerWidth <= 1023) return 6; // Tablet: 6 columns
     if (window.innerWidth <= 1279) return 7; // Small desktop: 7 columns
     return 8; // Large desktop: 8 columns
@@ -12,8 +12,10 @@ const Twins1 = () => {
 
   // Game configuration constants
   const [columns, setColumns] = useState(getColumnsForScreenWidth());
-  const ROWS = Math.ceil(32 / columns); // Adjust rows to maintain ~16 cards total
-  const TOTAL_PAIRS = Math.floor((ROWS * columns) / 2);
+  const [pairCount, setPairCount] = useState(16); // Default 16 pairs
+  const TOTAL_PAIRS = pairCount;
+  //const TOTAL_PAIRS = Math.floor((ROWS * columns) / 2);
+  const ROWS = Math.ceil((TOTAL_PAIRS * 2) / columns);
   const CARD_STATES = {
     COVER: "cover",
     OPEN: "open",
@@ -30,6 +32,7 @@ const Twins1 = () => {
   const [matchedPairs, setMatchedPairs] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [matchEffectCards, setMatchEffectCards] = useState([]);
+  const NAME_DISPLAY_DURATION = 500;
 
   // Add this debugging console log to verify breakpoints during development
   useEffect(() => {
@@ -116,14 +119,13 @@ const Twins1 = () => {
 
     // Create card pairs
     let newCards = [];
+    //let cardNumber = 1;
     selectedKeys.forEach((key, index) => {
       // Card data includes the key (for file lookup) and the display name from JSON
       const cardInfo = {
         key: key,
         displayName: cardData[key],
       };
-      // Remove this console.log in production
-      // console.log("key displayName: ", {selectedKeys});
 
       // Create two cards with the same image/data
       const card1 = {
@@ -132,6 +134,7 @@ const Twins1 = () => {
         cardInfo: cardInfo,
         state: CARD_STATES.COVER,
         showImage: false,
+        //sequenceNumber: cardNumber++,
       };
 
       const card2 = {
@@ -140,6 +143,7 @@ const Twins1 = () => {
         cardInfo: cardInfo,
         state: CARD_STATES.COVER,
         showImage: false,
+        //sequenceNumber: cardNumber++,
       };
 
       newCards.push(card1, card2);
@@ -147,6 +151,12 @@ const Twins1 = () => {
 
     // Shuffle the cards
     newCards = shuffleCards(newCards);
+
+    // Then assign sequence numbers up to their final position
+    newCards = newCards.map((card, index) => ({
+      ...card,
+      sequenceNumber: index + 1, // Start from 1
+    }));
     setCards(newCards);
   };
 
@@ -181,10 +191,15 @@ const Twins1 = () => {
             alt={card.cardInfo.displayName}
             className="w-full h-full object-cover"
           />
-
           {/* Display card name in center for 1 second after opening */}
           {card.showImage && card.state === CARD_STATES.OPEN && (
-            <div className="absolute bg-black bg-opacity-70 text-white p-2 rounded text-center">
+            <div
+              className="absolute bg-black bg-opacity-70 text-white p-2 rounded text-center"
+              style={{
+                userSelect: "none", // Prevents text selection
+                cursor: "default", // Ensures cursor doesn't change
+              }}
+            >
               {card.cardInfo.displayName}
             </div>
           )}
@@ -194,13 +209,32 @@ const Twins1 = () => {
 
     // Show card back
     return (
-      <div className="flex items-center justify-center h-full w-full">
+      <div className="flex items-center justify-center h-full w-full relative">
         <img
           src={`${import.meta.env.BASE_URL}cover.jpg`}
-          // src="/cover.jpg"
           alt="Card back"
           className="w-full h-full object-cover"
         />
+
+        {/* Number overlay on card cover */}
+        <div
+          className="absolute flex items-center justify-center"
+          style={{
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            color: "#FFC472",
+            fontWeight: "bold",
+            fontSize: "2rem",
+            textShadow: "1px 1px 2px black",
+          }}
+        >
+          {card.sequenceNumber}
+        </div>
       </div>
     );
   };
@@ -227,34 +261,45 @@ const Twins1 = () => {
     if (openCard !== null) {
       // If clicking a matching card
       if (openCard.sourceId === clickedCard.sourceId) {
-        // Show match effect on both cards
-        setMatchEffectCards([openCard.id, clickedCard.id]);
+        // Show the 2nd card image
+        setCards((prevCards) =>
+          prevCards.map((card) =>
+            card.id === clickedCard.id
+              ? { ...card, state: CARD_STATES.OPEN, showImage: true }
+              : card
+          )
+        );
 
-        // Clear the effect after the animation completes
+        // Wait 0.5 seconds before starting animation
         setTimeout(() => {
-          setMatchEffectCards([]);
-        }, 500);
+          // This will apply the "spinning-effect" class via your JSX
+          setMatchEffectCards([openCard.id, clickedCard.id]);
 
-        // Mark both cards as matched (after a slight delay)
-        setTimeout(() => {
-          setCards((prevCards) =>
-            prevCards.map((card) =>
-              card.id === clickedCard.id || card.id === openCard.id
-                ? { ...card, state: CARD_STATES.MATCHED, showImage: false }
-                : card
-            )
-          );
+          // After animation completes (1s), update the matched state
+          setTimeout(() => {
+            // Remove animation class
+            setMatchEffectCards([]);
 
-          // Update game state
-          const newMatchedPairs = matchedPairs + 1;
-          setMatchedPairs(newMatchedPairs);
-          setOpenCard(null);
+            // Mark cards as matched
+            setCards((prevCards) =>
+              prevCards.map((card) =>
+                card.id === clickedCard.id || card.id === openCard.id
+                  ? { ...card, state: CARD_STATES.MATCHED, showImage: false }
+                  : card
+              )
+            );
 
-          // Check if game is over
-          if (newMatchedPairs === TOTAL_PAIRS) {
-            setIsGameOver(true);
-          }
-        }, 1000);
+            // Update game state
+            const newMatchedPairs = matchedPairs + 1;
+            setMatchedPairs(newMatchedPairs);
+            setOpenCard(null);
+
+            if (newMatchedPairs === TOTAL_PAIRS) {
+              setIsGameOver(true);
+            }
+          }, 1000); // Wait for animation to complete (1s as per your CSS)
+        }, 500); // 0.5s delay before animation starts
+        //}
       } else {
         // Not a match - close the previously open card
         setCards((prevCards) =>
@@ -274,14 +319,14 @@ const Twins1 = () => {
         // Set the new open card
         setOpenCard(clickedCard);
 
-        // Hide the text after 2 seconds
+        // Hide the text after 0.5 seconds
         setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
               card.id === clickedCard.id ? { ...card, showImage: false } : card
             )
           );
-        }, 500);
+        }, NAME_DISPLAY_DURATION);
       }
     } else {
       // No open card yet - just open the clicked card
@@ -296,14 +341,14 @@ const Twins1 = () => {
       // Set this as the open card
       setOpenCard(clickedCard);
 
-      // Hide the text after 2 seconds
+      // Hide the text after 0.5 seconds
       setTimeout(() => {
         setCards((prevCards) =>
           prevCards.map((card) =>
             card.id === clickedCard.id ? { ...card, showImage: false } : card
           )
         );
-      }, 1500);
+      }, NAME_DISPLAY_DURATION);
     }
   };
 
@@ -385,6 +430,45 @@ const Twins1 = () => {
       style={{ backgroundColor: "#0E0E0E", color: "#FFC472" }}
     >
       <h1 className="text-5xl font-bold mb-6 text-center">Twins 1</h1>
+
+      {/* UI settings */}
+      <div className="mb-6 flex flex-col items-center">
+        <div
+          className="flex items-center mb-2 bg-gray-800 p-3 rounded-lg"
+          style={{ userSelect: "none" }}
+        >
+          <label
+            htmlFor="pairCount"
+            className="mr-3 font-semibold"
+            style={{ color: "#FED296" }}
+          >
+            Карт (пар):
+          </label>
+          <input
+            id="pairCount"
+            type="range"
+            min="4"
+            max="20"
+            value={pairCount}
+            onChange={(e) => setPairCount(parseInt(e.target.value))}
+            className="mr-3 bg-blue-600"
+            style={{ cursor: "pointer" }}
+          />
+          <span
+            className="bg-blue-600 px-2 py-1 rounded-md font-bold"
+            style={{
+              backgroundColor: "#2A5095",
+              minWidth: "2.5rem",
+              textAlign: "center",
+            }}
+          >
+            {pairCount}
+          </span>
+        </div>
+        <div className="text-sm text-gray-400" style={{ userSelect: "none" }}>
+          Всего карточек: {pairCount * 2}
+        </div>
+      </div>
 
       <button
         ref={newGameButtonRef}
