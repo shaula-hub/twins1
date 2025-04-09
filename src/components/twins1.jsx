@@ -665,13 +665,13 @@ const Twins1 = () => {
                   className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-bold transition-colors"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = COLORS.tertiary;
-                    e.currentTarget.style.color = "#FFFFFF";
+                    e.currentTarget.style.color = COLORS.background;
                     e.currentTarget.style.transform = "scale(1.1)";
                   }}
                   onClick={initializeGame}
                   autoFocus={!gameStarted}
                 >
-                  Играть снова
+                  Играть сначала
                 </button>
               </div>
             </div>
