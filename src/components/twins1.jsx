@@ -164,7 +164,8 @@ const Twins1 = () => {
       newCards.push(card1, card2);
     });
 
-    // Shuffle the cards
+    // Shuffle the cards 2 times
+    newCards = shuffleCards(newCards);
     newCards = shuffleCards(newCards);
 
     // Then assign sequence numbers up to their final position
@@ -504,113 +505,125 @@ const Twins1 = () => {
 
   return (
     <div
-      className="flex flex-col items-center text-white w-full max-w-4xl mx-auto p-4"
-      style={{ backgroundColor: "#0E0E0E", color: "#FFC472" }}
+      className="flex flex-col items-center w-full min-h-screen"
+      style={{
+        backgroundImage: `url(${import.meta.env.BASE_URL}background.jpg)`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        userSelect: "none",
+        padding: "1rem",
+      }}
     >
-      <h1 className="text-5xl font-bold mb-6 text-center">Twins 1</h1>
+      <div
+        className="flex flex-col items-center text-white w-full max-w-4xl mx-auto p-4"
+        style={{ backgroundColor: "#0E0E0E", color: "#FFC472" }}
+      >
+        <h1 className="text-5xl font-bold mb-6 text-center">Twins 1</h1>
 
-      {/* UI settings */}
-      <div className="mb-6 flex flex-col items-center">
-        <div
-          className="flex items-center mb-2 bg-gray-800 p-3 rounded-lg"
-          style={{ userSelect: "none" }}
-        >
-          <label
-            htmlFor="pairCount"
-            className="mr-3 font-semibold"
-            style={{ color: "#FED296" }}
+        {/* UI settings */}
+        <div className="mb-6 flex flex-col items-center">
+          <div
+            className="flex items-center mb-2 bg-gray-800 p-3 rounded-lg"
+            style={{ userSelect: "none" }}
           >
-            Карт (пар):
-          </label>
-          <input
-            id="pairCount"
-            type="range"
-            min="4"
-            max="20"
-            value={pairCount}
-            onChange={(e) => setPairCount(parseInt(e.target.value))}
-            className="mr-3 bg-blue-600"
-            style={{ cursor: "pointer" }}
-          />
-          <span
-            className="bg-blue-600 px-2 py-1 rounded-md font-bold"
-            style={{
-              backgroundColor: "#2A5095",
-              minWidth: "2.5rem",
-              textAlign: "center",
-            }}
-          >
-            {pairCount}
-          </span>
+            <label
+              htmlFor="pairCount"
+              className="mr-3 font-semibold"
+              style={{ color: "#FED296" }}
+            >
+              Карт (пар):
+            </label>
+            <input
+              id="pairCount"
+              type="range"
+              min="4"
+              max="20"
+              value={pairCount}
+              onChange={(e) => setPairCount(parseInt(e.target.value))}
+              className="mr-3 bg-blue-600"
+              style={{ cursor: "pointer" }}
+            />
+            <span
+              className="bg-blue-600 px-2 py-1 rounded-md font-bold"
+              style={{
+                backgroundColor: "#2A5095",
+                minWidth: "2.5rem",
+                textAlign: "center",
+              }}
+            >
+              {pairCount}
+            </span>
+          </div>
+          <div className="text-sm text-gray-400" style={{ userSelect: "none" }}>
+            Всего карточек: {pairCount * 2}
+          </div>
         </div>
-        <div className="text-sm text-gray-400" style={{ userSelect: "none" }}>
-          Всего карточек: {pairCount * 2}
-        </div>
-      </div>
 
-      <button
-        ref={newGameButtonRef}
-        className="py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-all transform cursor-pointer"
-        style={{
-          backgroundColor: COLORS.tertiary,
-          color: "#FFFFFF",
-          transition: "all 0.2s ease-in-out",
-          userSelect: "none",
-          outline: "none",
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.backgroundColor = COLORS.tertiary;
-          e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
-          e.currentTarget.style.transform = "scale(1.1)";
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.color = COLORS.buttonText;
-          e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = COLORS.tertiary;
-          e.currentTarget.style.color = "#FFFFFF";
-          e.currentTarget.style.transform = "scale(1.1)";
-        }}
-        onMouseLeave={(e) => {
-          if (document.activeElement !== e.currentTarget) {
+        <button
+          ref={newGameButtonRef}
+          className="py-3 px-8 rounded-lg text-xl font-bold mb-8 transition-all transform cursor-pointer"
+          style={{
+            backgroundColor: COLORS.tertiary,
+            color: "#FFFFFF",
+            transition: "all 0.2s ease-in-out",
+            userSelect: "none",
+            outline: "none",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.backgroundColor = COLORS.tertiary;
+            e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
+            e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onBlur={(e) => {
             e.currentTarget.style.backgroundColor = COLORS.primary;
             e.currentTarget.style.color = COLORS.buttonText;
+            e.currentTarget.style.boxShadow = "none";
             e.currentTarget.style.transform = "scale(1)";
-          }
-        }}
-        onClick={initializeGame}
-        disabled={isLoading}
-      >
-        {isLoading ? "Loading images..." : "Играть"}
-      </button>
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = COLORS.tertiary;
+            e.currentTarget.style.color = "#FFFFFF";
+            e.currentTarget.style.transform = "scale(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            if (document.activeElement !== e.currentTarget) {
+              e.currentTarget.style.backgroundColor = COLORS.primary;
+              e.currentTarget.style.color = COLORS.buttonText;
+              e.currentTarget.style.transform = "scale(1)";
+            }
+          }}
+          onClick={initializeGame}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading images..." : "Играть"}
+        </button>
 
-      {isLoading && (
-        <div className="text-center mb-4">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-500 border-r-transparent"></div>
-          <p className="mt-2">Loading card images...</p>
-        </div>
-      )}
+        {isLoading && (
+          <div className="text-center mb-4">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-500 border-r-transparent"></div>
+            <p className="mt-2">Loading card images...</p>
+          </div>
+        )}
 
-      {gameStarted && !isLoading ? (
-        <>
-          {/* Game board */}
-          <div
-            className="w-full mb-6 flex flex-wrap justify-center"
-            style={{
-              width: "100%",
-              padding: "0", // Remove padding to make border tight to cards
-              border: "4px solid #FFC472",
-              backgroundColor: "#FFC472",
-            }}
-            //style={{ maxWidth: '800px' }}
-          >
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                className={`
+        {gameStarted && !isLoading ? (
+          <>
+            {/* Game board */}
+            <div
+              className="w-full mb-6 flex flex-wrap justify-center"
+              style={{
+                width: "100%",
+                padding: "0", // Remove padding to make border tight to cards
+                border: "4px solid #FFC472",
+                backgroundColor: "#FFC472",
+              }}
+              //style={{ maxWidth: '800px' }}
+            >
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  className={`
                   ${
                     card.state === CARD_STATES.COVER
                       ? "bg-blue-500"
@@ -622,154 +635,156 @@ const Twins1 = () => {
                   hover:shadow-lg transform hover:scale-102
                   ${matchEffectCards.includes(card.id) ? "spinning-effect" : ""}
                 `}
-                // ${matchEffectCards.includes(card.id) ? "spinning-effect" : ""}
-                // ${matchEffectCards.includes(card.id) ? 'animate-pulse' : ''}
-                style={{
-                  ...getCardStyle(),
-                  ...(matchEffectCards.includes(card.id)
-                    ? {
-                        boxShadow:
-                          "0 0 0 4px gold, 0 0 15px 5px rgba(255, 215, 0, 0.6)",
-                      }
-                    : {}),
-                }}
-                onClick={() => handleCardClick(card)}
-                onDoubleClick={() => handleCardDoubleClick(card)}
-                onTouchStart={() => handleLongPress.start(card)}
-                onTouchEnd={() => handleLongPress.end()}
-              >
-                {renderCardContent(card)}
-              </div>
-            ))}
-          </div>
-
-          {/* Game Over message */}
-          {isGameOver && (
-            <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
-              <div
-                className="px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
-                // className="bg-green-100 border-4 border-green-500 text-green-700 px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
-                style={{
-                  marginBottom: "35vh", // Position it above the game board
-                  maxWidth: "90%",
-                  boxShadow: "0 0 20px rgba(34, 197, 94, 0.6)",
-                  animation: "none", // We'll use React state for animation instead
-                  transform: `scale(${congratsScale})`, // Scale based on state
-                  opacity: congratsOpacity, // Opacity based on state
-                  transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
-                }}
-              >
-                <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
-                <p className="text-xl">Вы нашли все пары!</p>
-                <button
-                  className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-bold transition-colors"
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = COLORS.tertiary;
-                    e.currentTarget.style.color = COLORS.background;
-                    e.currentTarget.style.transform = "scale(1.1)";
+                  // ${matchEffectCards.includes(card.id) ? "spinning-effect" : ""}
+                  // ${matchEffectCards.includes(card.id) ? 'animate-pulse' : ''}
+                  style={{
+                    ...getCardStyle(),
+                    ...(matchEffectCards.includes(card.id)
+                      ? {
+                          boxShadow:
+                            "0 0 0 4px gold, 0 0 15px 5px rgba(255, 215, 0, 0.6)",
+                        }
+                      : {}),
                   }}
-                  onClick={initializeGame}
-                  autoFocus={!gameStarted}
+                  onClick={() => handleCardClick(card)}
+                  onDoubleClick={() => handleCardDoubleClick(card)}
+                  onTouchStart={() => handleLongPress.start(card)}
+                  onTouchEnd={() => handleLongPress.end()}
                 >
-                  Играть сначала
-                </button>
+                  {renderCardContent(card)}
+                </div>
+              ))}
+            </div>
+
+            {/* Game Over message */}
+            {isGameOver && (
+              <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+                <div
+                  className="px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
+                  // className="bg-green-100 border-4 border-green-500 text-green-700 px-8 py-6 rounded-lg text-center shadow-2xl pointer-events-auto"
+                  style={{
+                    marginBottom: "35vh", // Position it above the game board
+                    maxWidth: "90%",
+                    boxShadow: "0 0 20px rgba(34, 197, 94, 0.6)",
+                    animation: "none", // We'll use React state for animation instead
+                    transform: `scale(${congratsScale})`, // Scale based on state
+                    opacity: congratsOpacity, // Opacity based on state
+                    transition:
+                      "transform 0.6s ease-out, opacity 0.6s ease-out",
+                  }}
+                >
+                  <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
+                  <p className="text-xl">Вы нашли все пары!</p>
+                  <button
+                    className="mt-4 bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-lg font-bold transition-colors"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = COLORS.tertiary;
+                      e.currentTarget.style.color = COLORS.background;
+                      e.currentTarget.style.transform = "scale(1.1)";
+                    }}
+                    onClick={initializeGame}
+                    autoFocus={!gameStarted}
+                  >
+                    Играть сначала
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center text-gray-600 text-xl">
+            {/* Press the New Game button to start playing */}
+          </div>
+        )}
+        {/* Fullscreen image view */}
+        {fullscreenCard && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+            onClick={() => setFullscreenCard(null)}
+          >
+            <div className="max-w-2xl max-h-2xl p-4">
+              <img
+                src={`${import.meta.env.BASE_URL}img/${encodeURIComponent(
+                  `${fullscreenCard.cardInfo.displayName}.jpg`
+                )}`}
+                // src={`/img/${encodeURIComponent(
+                //   `${fullscreenCard.cardInfo.displayName}.jpg`
+                // )}`}
+                alt={fullscreenCard.cardInfo.displayName}
+                className="max-w-full max-h-full object-contain"
+              />
+              <div className="text-white text-center mt-4 text-xl">
+                {fullscreenCard.cardInfo.displayName}
               </div>
             </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center text-gray-600 text-xl">
-          {/* Press the New Game button to start playing */}
-        </div>
-      )}
-      {/* Fullscreen image view */}
-      {fullscreenCard && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-          onClick={() => setFullscreenCard(null)}
-        >
-          <div className="max-w-2xl max-h-2xl p-4">
-            <img
-              src={`${import.meta.env.BASE_URL}img/${encodeURIComponent(
-                `${fullscreenCard.cardInfo.displayName}.jpg`
-              )}`}
-              // src={`/img/${encodeURIComponent(
-              //   `${fullscreenCard.cardInfo.displayName}.jpg`
-              // )}`}
-              alt={fullscreenCard.cardInfo.displayName}
-              className="max-w-full max-h-full object-contain"
-            />
-            <div className="text-white text-center mt-4 text-xl">
-              {fullscreenCard.cardInfo.displayName}
-            </div>
           </div>
-        </div>
-      )}
-      {isGameOver && (
-        <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
-          <div
-            className="text-center shadow-2xl pointer-events-auto"
-            style={{
-              marginBottom: "35vh", // Position it above the game board
-              maxWidth: "90%",
-              backgroundColor: COLORS.background, // Almost black background
-              borderColor: COLORS.secondary, // blue border
-              borderWidth: "4px",
-              borderStyle: "solid",
-              color: COLORS.primary, // black text
-              padding: "2rem",
-              borderRadius: "0.5rem",
-              boxShadow: `0 0 20px ${COLORS.primary}`, // Yellow-orange glow
-              transform: `scale(${congratsScale})`,
-              opacity: congratsOpacity,
-              transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
-            }}
-          >
-            <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
-            <p className="text-xl">Вы нашли все пары!</p>
-            <button
-              ref={playAgainButtonRef}
-              className="mt-4 font-bold py-2 px-6 rounded-lg transition-all"
+        )}
+        {isGameOver && (
+          <div className="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+            <div
+              className="text-center shadow-2xl pointer-events-auto"
               style={{
-                backgroundColor: COLORS.primary, // Yellow-orange button
-                color: COLORS.buttonText, // Dark text on button
-                border: `2px solid ${COLORS.primary}`,
-                transform: "scale(1)",
-                transition: "all 0.2s ease-in-out",
+                marginBottom: "35vh", // Position it above the game board
+                maxWidth: "90%",
+                backgroundColor: COLORS.background, // Almost black background
+                borderColor: COLORS.secondary, // blue border
+                borderWidth: "4px",
+                borderStyle: "solid",
+                color: COLORS.primary, // black text
+                padding: "2rem",
+                borderRadius: "0.5rem",
+                boxShadow: `0 0 20px ${COLORS.primary}`, // Yellow-orange glow
+                transform: `scale(${congratsScale})`,
+                opacity: congratsOpacity,
+                transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
               }}
-              onFocus={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter yellow on focus
-                e.currentTarget.style.borderColor = COLORS.tertiary;
-                e.currentTarget.style.color = "#FFFFFF";
-                e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
-                e.currentTarget.style.transform = "scale(1.2)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.primary;
-                e.currentTarget.style.borderColor = COLORS.primary;
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter green on hover
-                e.currentTarget.style.borderColor = COLORS.tertiary;
-                e.currentTarget.style.color = "#FFFFFF";
-                e.currentTarget.style.transform = "scale(1.2)";
-              }}
-              onMouseLeave={(e) => {
-                if (document.activeElement !== e.currentTarget) {
+            >
+              <h2 className="text-3xl font-bold mb-2">Поздравляем!</h2>
+              <p className="text-xl">Вы нашли все пары!</p>
+              <button
+                ref={playAgainButtonRef}
+                className="mt-4 font-bold py-2 px-6 rounded-lg transition-all"
+                style={{
+                  backgroundColor: COLORS.primary, // Yellow-orange button
+                  color: COLORS.buttonText, // Dark text on button
+                  border: `2px solid ${COLORS.primary}`,
+                  transform: "scale(1)",
+                  transition: "all 0.2s ease-in-out",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter yellow on focus
+                  e.currentTarget.style.borderColor = COLORS.tertiary;
+                  e.currentTarget.style.color = "#FFFFFF";
+                  e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.tertiary}`;
+                  e.currentTarget.style.transform = "scale(1.2)";
+                }}
+                onBlur={(e) => {
                   e.currentTarget.style.backgroundColor = COLORS.primary;
                   e.currentTarget.style.borderColor = COLORS.primary;
+                  e.currentTarget.style.boxShadow = "none";
                   e.currentTarget.style.transform = "scale(1)";
-                }
-              }}
-              onClick={initializeGame}
-            >
-              Играть снова
-            </button>
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = COLORS.tertiary; // Lighter green on hover
+                  e.currentTarget.style.borderColor = COLORS.tertiary;
+                  e.currentTarget.style.color = "#FFFFFF";
+                  e.currentTarget.style.transform = "scale(1.2)";
+                }}
+                onMouseLeave={(e) => {
+                  if (document.activeElement !== e.currentTarget) {
+                    e.currentTarget.style.backgroundColor = COLORS.primary;
+                    e.currentTarget.style.borderColor = COLORS.primary;
+                    e.currentTarget.style.transform = "scale(1)";
+                  }
+                }}
+                onClick={initializeGame}
+              >
+                Играть снова
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
